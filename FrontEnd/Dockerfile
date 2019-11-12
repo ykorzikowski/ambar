@@ -1,15 +1,17 @@
-FROM nginx:latest
+FROM node:8-stretch
 
-RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y curl
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y curl python3
 
 # Set a timezone
 ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY default /etc/nginx/conf.d/default.conf
-COPY dist /usr/share/nginx/html
+COPY . /app
+WORKDIR /app
 
-CMD echo $api > /usr/share/nginx/html/apiUrl.txt && nginx -g "daemon off;"
+RUN npm install
+
+CMD ./start.sh
 
 HEALTHCHECK --interval=5s --timeout=30s --retries=50 \
-  CMD curl -f localhost:80 || exit 1
+  CMD curl -f localhost:$PORT || exit 1
